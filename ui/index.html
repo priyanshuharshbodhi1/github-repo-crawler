@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo Crawler · Intelligence Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <main class="page">
+      <section class="hero">
+        <div class="hero-row">
+          <div>
+            <p class="eyebrow">High-Performance GitHub Crawler</p>
+            <h1>Repository Intelligence Dashboard</h1>
+            <p class="subtitle">
+              Live view from crawl artifacts — run health, throughput, language
+              mix, star distribution, and searchable top-repo explorer.
+            </p>
+          </div>
+          <div class="hero-aside" id="gate-card">
+            <div class="gate-pill" id="gate-pill">PENDING</div>
+            <p class="gate-note" id="gate-note">Loading run…</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="live-banner" id="live-banner" hidden>
+        <div class="live-dot"></div>
+        <span class="live-label">CRAWLING LIVE</span>
+        <div class="live-stats" id="live-stats"></div>
+        <div class="live-bar-wrap">
+          <div class="live-bar-fill" id="live-bar-fill"></div>
+        </div>
+        <span class="live-pct" id="live-pct">0%</span>
+      </section>
+
+      <section class="metrics" id="metrics-grid">
+        <article class="metric-card"><span>Loading metrics…</span></article>
+      </section>
+
+      <section class="charts">
+        <article class="chart-card">
+          <header class="chart-head">
+            <h2>Language Distribution</h2>
+            <span class="chart-sub" id="lang-sub">top 500 repositories</span>
+          </header>
+          <div class="chart-body" id="lang-chart"></div>
+        </article>
+
+        <article class="chart-card">
+          <header class="chart-head">
+            <h2>Star Distribution</h2>
+            <span class="chart-sub">log-bucketed · top 500</span>
+          </header>
+          <div class="chart-body" id="stars-chart"></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Top Repositories</h2>
+            <p class="panel-sub" id="panel-sub">—</p>
+          </div>
+          <div class="filters">
+            <input
+              id="repo-search"
+              type="search"
+              placeholder="Search owner/repo, language, description…"
+              autocomplete="off"
+            />
+            <select id="lang-filter" aria-label="Filter by language">
+              <option value="">All languages</option>
+            </select>
+            <input
+              id="min-stars"
+              type="number"
+              min="0"
+              step="100"
+              placeholder="Min stars"
+            />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="repos-table">
+            <thead>
+              <tr>
+                <th data-sort="name_with_owner" class="sortable">Repository <span class="sort-ind"></span></th>
+                <th data-sort="primary_language" class="sortable">Language <span class="sort-ind"></span></th>
+                <th data-sort="stargazer_count" class="sortable num">Stars <span class="sort-ind"></span></th>
+                <th data-sort="fork_count" class="sortable num">Forks <span class="sort-ind"></span></th>
+                <th data-sort="updated_at" class="sortable">Updated <span class="sort-ind"></span></th>
+              </tr>
+            </thead>
+            <tbody id="repos-body">
+              <tr><td colspan="5">Loading repositories…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <footer class="panel-foot">
+          <button id="prev-page" class="pager-btn">← Prev</button>
+          <span id="page-info">—</span>
+          <button id="next-page" class="pager-btn">Next →</button>
+        </footer>
+      </section>
+
+      <footer class="page-foot" id="page-foot">—</footer>
+    </main>
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

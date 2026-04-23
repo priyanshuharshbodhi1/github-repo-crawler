@@ -1,0 +1,163 @@
+name: crawler-ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Fast smoke job — runs on every PR (~2 min, 500 repos only) ───────────────
+  smoke-crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: repo_crawler
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d repo_crawler"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/repo_crawler
+      DATABASE_MAX_CONNECTIONS: 10
+      DATABASE_IDLE_TIMEOUT_MS: 30000
+      GITHUB_TOKEN: ${{ github.token }}
+      CRAWLER_TARGET: 500
+      CRAWLER_QUERY_PAGE_SIZE: 100
+      CRAWLER_DB_BATCH_SIZE: 500
+      CRAWLER_SHARD_CONCURRENCY: 5
+      CRAWLER_MAX_RUNTIME_SECONDS: 120
+      CRAWLER_MIN_RATE_LIMIT_REMAINING: 25
+      CRAWLER_RETRY_MAX_ATTEMPTS: 3
+      CRAWLER_RETRY_BASE_DELAY_MS: 250
+      CRAWLER_ENFORCE_TARGET: false
+      RUN_SUMMARY_PATH: artifacts/run-summary.json
+      EXPORT_PATH: artifacts/repositories.json
+      UI_DATASET_PATH: artifacts/ui-dataset.json
+      UI_TOP_REPOSITORIES_LIMIT: 50
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Run migrations
+        run: npm run migrate
+
+      - name: Run smoke crawl (500 repos)
+        run: npm run crawl
+
+  # ── Full crawl — runs on push to main and manual dispatch (~10 min) ──────────
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name != 'pull_request'
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: repo_crawler
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d repo_crawler"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/repo_crawler
+      DATABASE_MAX_CONNECTIONS: 25
+      DATABASE_IDLE_TIMEOUT_MS: 30000
+      GITHUB_TOKEN: ${{ github.token }}
+      CRAWLER_TARGET: 100000
+      CRAWLER_QUERY_PAGE_SIZE: 100
+      CRAWLER_DB_BATCH_SIZE: 5000
+      CRAWLER_SHARD_CONCURRENCY: 20
+      CRAWLER_MAX_RUNTIME_SECONDS: 600
+      CRAWLER_MIN_RATE_LIMIT_REMAINING: 25
+      CRAWLER_RETRY_MAX_ATTEMPTS: 6
+      CRAWLER_RETRY_BASE_DELAY_MS: 250
+      CRAWLER_ENFORCE_TARGET: true
+      RUN_SUMMARY_PATH: artifacts/run-summary.json
+      EXPORT_PATH: artifacts/repositories.json
+      UI_DATASET_PATH: artifacts/ui-dataset.json
+      UI_TOP_REPOSITORIES_LIMIT: 500
+      CRAWLER_EXPECT_MAX_SECONDS: 600
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Run migrations
+        run: npm run migrate
+
+      - name: Run crawler
+        run: npm run crawl
+
+      - name: Export repositories
+        run: npm run export:data
+
+      - name: Validate run summary
+        run: npm run verify:summary
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-artifacts
+          path: |
+            artifacts/run-summary.json
+            artifacts/repositories.json
+            artifacts/ui-dataset.json
+            ui

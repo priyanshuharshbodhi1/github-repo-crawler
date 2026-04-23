@@ -1,0 +1,44 @@
+{
+  "name": "truxt-github-repo-crawler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "High-performance GitHub repository crawler assignment",
+  "main": "dist/interfaces/cli/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/interfaces/cli/index.ts",
+    "start": "node dist/interfaces/cli/index.js",
+    "smoke": "tsx src/interfaces/cli/index.ts smoke",
+    "migrate": "tsx src/interfaces/cli/index.ts migrate",
+    "crawl": "tsx src/interfaces/cli/index.ts crawl",
+    "export:data": "tsx src/interfaces/cli/index.ts export",
+    "ui:start": "node scripts/serve-ui.js",
+    "verify:summary": "node scripts/verify-run-summary.js",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pg": "^8.13.0",
+    "pino": "^9.4.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/pg": "^8.11.10",
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "@typescript-eslint/parser": "^8.8.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "pg-mem": "^3.0.5",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  }
+}
